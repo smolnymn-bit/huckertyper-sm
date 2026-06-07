@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>💚 HACK THE PENTAGON | Green Ghost Terminal 💚</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: radial-gradient(circle at 30% 10%, #030603, #000000);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Fira Code', 'Courier New', 'Source Code Pro', monospace;
+            padding: 1rem;
+        }
+
+        .hacker-container {
+            width: 100%;
+            max-width: 1400px;
+            height: 90vh;
+            background: #0b0e0b;
+            border: 1px solid #1fcc4b;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(31, 204, 75, 0.4), inset 0 0 8px rgba(0, 255, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            backdrop-filter: blur(0px);
+            position: relative;
+        }
+
+        .terminal-bar {
+            background: #0f130f;
+            border-bottom: 1px solid #1fcc4b;
+            padding: 12px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .badge {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .led {
+            width: 12px;
+            height: 12px;
+            background-color: #1fcc4b;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #1fcc4b;
+            animation: pulse 0.9s infinite;
+        }
+
+        .title {
+            font-weight: 600;
+            letter-spacing: 2px;
+            font-size: 0.85rem;
+            color: #9eff9e;
+            background: #1a2a1a;
+            padding: 5px 14px;
+            border-radius: 40px;
+            text-transform: uppercase;
+            font-family: monospace;
+        }
+
+        .stats {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #81e681;
+            background: #111811;
+            padding: 5px 14px;
+            border-radius: 30px;
+            border: 0.5px solid #2e6b2e;
+        }
+
+        button {
+            background: #0e1a0e;
+            border: 1px solid #2f9e4a;
+            color: #b3ffb3;
+            font-family: monospace;
+            font-size: 0.75rem;
+            padding: 6px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            z-index: 10;
+            position: relative;
+        }
+
+        button:hover {
+            background: #1f3a1f;
+            border-color: #3eff6e;
+            box-shadow: 0 0 8px #3eff6e;
+            color: #fff;
+            transform: scale(0.97);
+        }
+
+        .code-window {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px;
+            background: #030603;
+            scroll-behavior: smooth;
+            cursor: text;
+            -webkit-tap-highlight-color: rgba(31,204,75,0.2);
+        }
+
+        .code-output {
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.55;
+            color: #b3ffb3;
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin: 0;
+            text-shadow: 0 0 2px #1fcc4b;
+        }
+
+        /* мигающий курсор (inline-block) */
+        .cursor-block {
+            display: inline-block;
+            width: 10px;
+            height: 1.2rem;
+            background-color: #1fcc4b;
+            vertical-align: middle;
+            margin-left: 2px;
+            box-shadow: 0 0 6px #0f0;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; transform: scale(0.95);}
+            100% { opacity: 1; transform: scale(1);}
+        }
+
+        .code-window::-webkit-scrollbar {
+            width: 6px;
+        }
+        .code-window::-webkit-scrollbar-track {
+            background: #0a1a0a;
+        }
+        .code-window::-webkit-scrollbar-thumb {
+            background: #2a8a4a;
+            border-radius: 8px;
+        }
+
+        /* ========== МОБИЛЬНАЯ ПАНЕЛЬ ВВОДА (видимая, не перекрывает терминал) ========== */
+        .mobile-input-panel {
+            background: #0b100b;
+            border-top: 1px solid #1fcc4b;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        
+        .mobile-input-panel .prompt {
+            color: #1fcc4b;
+            font-family: monospace;
+            font-size: 0.85rem;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        .mobile-input-field {
+            flex: 1;
+            background: #0a1a0a;
+            border: 1px solid #2e9e4a;
+            border-radius: 40px;
+            padding: 10px 16px;
+            color: #b3ffb3;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            outline: none;
+            caret-color: #1fcc4b;
+            width: 100%;
+            -webkit-appearance: none;
+            background-color: #071007;
+        }
+        
+        .mobile-input-field:focus {
+            border-color: #3eff6e;
+            box-shadow: 0 0 8px #3eff6e;
+        }
+        
+        .send-btn {
+            background: #0e1a0e;
+            border: 1px solid #2f9e4a;
+            border-radius: 40px;
+            padding: 8px 18px;
+            color: #b3ffb3;
+            font-family: monospace;
+            font-size: 0.8rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        
+        .send-btn:active {
+            transform: scale(0.96);
+            background: #1a3a1a;
+        }
+        
+        /* На десктопе панель тоже видна, но можно сделать меньше; но это удобно */
+        @media (max-width: 700px) {
+            .code-output {
+                font-size: 0.75rem;
+            }
+            .code-window {
+                padding: 14px;
+            }
+            .mobile-input-panel {
+                padding: 8px 12px;
+            }
+            .mobile-input-field {
+                padding: 8px 14px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* Для очень маленьких экранов */
+        @media (max-width: 480px) {
+            .mobile-input-field {
+                font-size: 0.8rem;
+                padding: 8px 12px;
+            }
+            .prompt {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="hacker-container">
+    <div class="terminal-bar">
+        <div class="badge">
+            <div class="led"></div>
+            <span class="title">🐉 PENTAGON // GHOST SHELL // ROOT ACCESS</span>
+        </div>
+        <div class="stats">
+            <span id="charCounter">0</span> / <span id="totalChars">0</span> bytes
+        </div>
+        <button id="resetBtn">⟳ NUKE & RESET</button>
+    </div>
+
+    <div class="code-window" id="codeWindow">
+        <pre class="code-output" id="codeDisplay"></pre>
+    </div>
+    
+    <!-- НИЖНЯЯ ПАНЕЛЬ С ВИДИМЫМ ПОЛЕМ ВВОДА ДЛЯ МОБИЛЬНЫХ/ДЕСКТОПА -->
+    <div class="mobile-input-panel" id="mobileInputPanel">
+        <span class="prompt">λ&gt;</span>
+        <input type="text" id="commandInput" class="mobile-input-field" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Нажми на экран и печатай...">
+        <button id="sendBtn" class="send-btn">⚡ ENTER</button>
+    </div>
+</div>
+
+<script>
+    // ========== 1. ФЕЙКОВЫЙ ТЕРМИНАЛЬНЫЙ ПРОМПТ (путь, исходная директория) ==========
+    const TERMINAL_HEADER = 
+        "┌─[root@pentagon-ghost]─[~]\n" +
+        "└──╼ $ whoami\n" +
+        "root\n" +
+        "┌─[root@pentagon-ghost]─[~]\n" +
+        "└──╼ $ pwd\n" +
+        "/opt/ghostnet/infiltrate\n" +
+        "┌─[root@pentagon-ghost]─[/opt/ghostnet/infiltrate]\n" +
+        "└──╼ $ ls -la\n" +
+        "total 1388\ndrwxr-xr-x 5 root root   4096 Jun  7 13:37 .\n" +
+        "drwxr-xr-x 3 root root   4096 Jun  7 13:37 ..\n" +
+        "-rw-r--r-- 1 root root   7342 Jun  7 13:37 payload_enc.bin\n" +
+        "-rwxr-xr-x 1 root root  89123 Jun  7 13:37 ghost_agent.so\n" +
+        "drwx------ 2 root root   4096 Jun  7 13:37 .c2_keys\n" +
+        "┌─[root@pentagon-ghost]─[/opt/ghostnet/infiltrate]\n" +
+        "└──╼ $ python3 pentagon_breach.py --silent --deep-root\n" +
+        "[*] GhostNet Loader v3.7 (Pentagon edition)\n" +
+        "[*] Bypassing SELinux . . . OK\n" +
+        "[*] Establishing covert channel . . . DONE\n" +
+        "[+] Dropping interactive shell. Code execution:\n\n";
+    
+    // ========== 2. ГЕНЕРАТОР ФЕЙКОВОГО КОДА (исходный + 2400+ строк) ==========
+    function generatePentagonHackCode() {
+        let lines = [];
+        
+        lines.push("#!/usr/bin/env python3");
+        lines.push("# -*- coding: utf-8 -*-");
+        lines.push("\"\"\"");
+        lines.push("    ██████╗ ███████╗███╗   ██╗████████╗ █████╗  ██████╗  ██████╗ ███╗   ██╗");
+        lines.push("    ██╔══██╗██╔════╝████╗  ██║╚══██╔══╝██╔══██╗██╔════╝ ██╔═══██╗████╗  ██║");
+        lines.push("    ██████╔╝█████╗  ██╔██╗ ██║   ██║   ███████║██║  ███╗██║   ██║██╔██╗ ██║");
+        lines.push("    ██╔═══╝ ██╔══╝  ██║╚██╗██║   ██║   ██╔══██║██║   ██║██║   ██║██║╚██╗██║");
+        lines.push("    ██║     ███████╗██║ ╚████║   ██║   ██║  ██║╚██████╔╝╚██████╔╝██║ ╚████║");
+        lines.push("    ╚═╝     ╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝");
+        lines.push("");
+        lines.push("    [ PENTAGON DEEP-ACCESS IMPLANT v2.3.7 ]");
+        lines.push("    [ MODULE: GHOSTNET // STEALTH EXPLOIT FRAMEWORK ]");
+        lines.push("\"\"\"");
+        lines.push("");
+        lines.push("import sys, os, socket, struct, time, threading, random");
+        lines.push("import base64, hashlib, binascii, subprocess, ssl, json");
+        lines.push("import urllib.request, urllib.parse");
+        lines.push("");
+        lines.push("# ==================== GLOBAL CONFIG ====================");
+        lines.push("TARGET_NETWORKS = [\"10.0.0.0/8\", \"172.16.0.0/12\", \"192.168.1.0/24\"]");
+        lines.push("PENTAGON_CORE_IP = \"123.45.67.89\"   # classified");
+        lines.push("BACKDOOR_PORT = 4433");
+        lines.push("ENCRYPTION_KEY = b'F9xkL3mNpQ2rTvY7wXzA4bC6dE8fG0hJ'");
+        lines.push("C2_SERVER = \"https://ghost-c2.anon.pentest\"");
+        lines.push("EXFILTRATION_PATH = \"/var/log/.system_update\"");
+        lines.push("");
+        lines.push("def xor_encrypt(data, key):");
+        lines.push("    return bytes([data[i] ^ key[i % len(key)] for i in range(len(data))])");
+        lines.push("");
+        lines.push("def anti_debug_check():");
+        lines.push("    if sys.gettrace() is not None:");
+        lines.push("        print(\"[!] Debugger detected. Exiting.\")");
+        lines.push("        sys.exit(0)");
+        lines.push("");
+        lines.push("class PentagonFirewallBypass:");
+        lines.push("    def __init__(self, target_ip, target_port=443):");
+        lines.push("        self.target = target_ip");
+        lines.push("        self.port = target_port");
+        lines.push("        self.session = socket.socket(socket.AF_INET, socket.SOCK_STREAM)");
+        lines.push("");
+        lines.push("    def craft_fragment_payload(self, raw_command):");
+        lines.push("        return [raw_command[i:i+16] for i in range(0, len(raw_command), 16)]");
+        lines.push("");
+        lines.push("    def send_evasive_packet(self, payload):");
+        lines.push("        try:");
+        lines.push("            self.session.connect((self.target, self.port))");
+        lines.push("            for chunk in self.craft_fragment_payload(payload):");
+        lines.push("                self.session.send(chunk.encode())");
+        lines.push("                time.sleep(0.05)");
+        lines.push("            return self.session.recv(4096).decode()");
+        lines.push("        except Exception as e:");
+        lines.push("            return f\"[!] Firewall evasion failed: {e}\"");
+        lines.push("");
+        lines.push("class BackdoorPersistence:");
+        lines.push("    def install_systemd_service(self):");
+        lines.push("        service = \"[Unit]\\nDescription=Pentagon Update\\nAfter=network.target\\n[Service]\\nExecStart=/usr/bin/python3 /opt/.systemd_update.py\\nRestart=always\\n[Install]\\nWantedBy=multi-user.target\"");
+        lines.push("        try:");
+        lines.push("            with open('/etc/systemd/system/pentagon-update.service', 'w') as f:");
+        lines.push("                f.write(service)");
+        lines.push("            subprocess.run(['systemctl', 'enable', 'pentagon-update.service'])");
+        lines.push("            return True");
+        lines.push("        except: return False");
+        lines.push("");
+        lines.push("def exploit_zero_day_cve_2026_9999(target_url):");
+        lines.push("    print(f\"[*] Triggering heap overflow on {target_url}\")");
+        lines.push("    time.sleep(0.5)");
+        lines.push("    rop_chain = b'\\x41'*256 + b'\\x90\\x90\\x90\\x90' + b'\\xcc\\xcc\\xcc\\xcc'");
+        lines.push("    return \"SHELLCODE_INJECTED\"");
+        lines.push("");
+        lines.push("def exfiltrate_to_c2(data_chunk):");
+        lines.push("    encrypted = base64.b85encode(data_chunk.encode()).decode()");
+        lines.push("    return True");
+        lines.push("");
+        lines.push("def wipe_logs_remote():");
+        lines.push("    subprocess.run(['shred', '-uz', '/var/log/auth.log'], stderr=subprocess.DEVNULL)");
+        lines.push("    return \"[✓] Logs wiped\"");
+        lines.push("");
+        
+        // Огромное количество дополнительных строк (>1200)
+        for (let i = 1; i <= 400; i++) {
+            lines.push(`# ========== STEALTH_MODULE_${i} ==========`);
+            lines.push(`class KernelHook_${i}:`);
+            lines.push(`    def __init__(self): self.sig = hashlib.sha256(f"hook_${i}".encode()).hexdigest()`);
+            lines.push(`    def elevate(self): return os.setuid(0) if hasattr(os, 'setuid') else None`);
+            lines.push(`    def hide_process(self): print(f"[*] hiding PID ${i} from procfs")`);
+            lines.push(``);
+        }
+        
+        for (let i = 0; i < 220; i++) {
+            lines.push(`def icmp_tunnel_${i}(payload):`);
+            lines.push(`    b64_payload = base64.b64encode(payload.encode())[:56]`);
+            lines.push(`    print(f"[ICMP] exfil chunk ${i}: {b64_payload.decode()}...")`);
+            lines.push(`    return len(b64_payload)`);
+            lines.push(``);
+        }
+        
+        for (let i = 0; i < 180; i++) {
+            lines.push(`FAKE_SIGNATURE_${i} = hashlib.sha3_512(b'pentagon_ghostnet_edge').hexdigest()`);
+            lines.push(`def syscall_hook_${i}():`);
+            lines.push(`    return "KERNEL_CALLBACK_HOOK_ACTIVE"`);
+            lines.push(``);
+        }
+        
+        lines.push("# ========== ADVANCED PERSISTENCE ==========");
+        for (let p = 0; p < 130; p++) {
+            lines.push(`def persistence_trigger_${p}(interval_sec):`);
+            lines.push(`    for _ in range(interval_sec):`);
+            lines.push(`        time.sleep(60)`);
+            lines.push(`        subprocess.run(["/bin/sh", "-c", "echo 'beacon' > /dev/null"])`);
+            lines.push(`    return True`);
+            lines.push(``);
+        }
+        
+        lines.push("class GhostNetOrchestrator:");
+        lines.push("    def __init__(self):");
+        lines.push("        self.targets = [\"10.200.10.1\", \"172.18.2.50\", \"192.168.50.200\"]");
+        lines.push("        self.firewall_module = PentagonFirewallBypass(PENTAGON_CORE_IP)");
+        lines.push("        self.persistence = BackdoorPersistence()");
+        lines.push("");
+        lines.push("    def initial_breach(self):");
+        lines.push("        print(\"[+] Initializing breach sequence...\")");
+        lines.push("        anti_debug_check()");
+        lines.push("        for ip in self.targets:");
+        lines.push("            exploit_zero_day_cve_2026_9999(f\"https://{ip}/cgi-bin/exec\")");
+        lines.push("        return True");
+        lines.push("");
+        lines.push("    def deploy_rootkit(self):");
+        lines.push("        print(\"[*] Deploying kernel module rootkit\")");
+        lines.push("        subprocess.run(\"insmod /tmp/.hook.ko\", shell=True)");
+        lines.push("");
+        lines.push("    def full_attack(self):");
+        lines.push("        print(\"\\n[***] PENTAGON GHOSTNET ACTIVATED [***]\\n\")");
+        lines.push("        self.initial_breach()");
+        lines.push("        self.deploy_rootkit()");
+        lines.push("        self.persistence.install_systemd_service()");
+        lines.push("        exfiltrate_to_c2(\"{'status': 'owned'}\")");
+        lines.push("        wipe_logs_remote()");
+        lines.push("        print(\"\\n[!!!] FULL ACCESS GRANTED: BACKDOOR ACTIVE [!!!]\\n\")");
+        lines.push("");
+        lines.push("if __name__ == \"__main__\":");
+        lines.push("    print(\"[+] Pentagon Deep Exploit v3.0\")");
+        lines.push("    orchestrator = GhostNetOrchestrator()");
+        lines.push("    orchestrator.full_attack()");
+        lines.push("    print(\"[+] System owned. GhostNet persistence established.\")");
+        lines.push("    while True: time.sleep(60); print(\"[*] C2 heartbeat\")");
+        lines.push("");
+        lines.push("#  /// PENTAGON BACKDOOR ACTIVE ///");
+        
+        return lines.join("\n");
+    }
+    
+    const PYTHON_EXPLOIT_CODE = generatePentagonHackCode();
+    const FULL_TERMINAL_TEXT = TERMINAL_HEADER + PYTHON_EXPLOIT_CODE;
+    
+    // --------------------------------------------------------------
+    // ЛОГИКА ТЕРМИНАЛА (печать символов + курсор)
+    // --------------------------------------------------------------
+    let currentIndex = 0;
+    let displayedText = "";
+    const codeDisplay = document.getElementById("codeDisplay");
+    const charCounterSpan = document.getElementById("charCounter");
+    const totalCharsSpan = document.getElementById("totalChars");
+    const resetBtn = document.getElementById("resetBtn");
+    const codeWindow = document.getElementById("codeWindow");
+    const commandInput = document.getElementById("commandInput");
+    const sendBtn = document.getElementById("sendBtn");
+    
+    const totalCodeLength = FULL_TERMINAL_TEXT.length;
+    totalCharsSpan.innerText = totalCodeLength;
+    
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    function updateDisplay() {
+        codeDisplay.innerHTML = escapeHtml(displayedText) + '<span class="cursor-block"></span>';
+        if (codeWindow) {
+            codeWindow.scrollTop = codeWindow.scrollHeight;
+        }
+    }
+    
+    function updateCounter() {
+        charCounterSpan.innerText = currentIndex;
+    }
+    
+    // Добавление одного символа из полного текста
+    function addNextCharacter() {
+        if (currentIndex >= totalCodeLength) {
+            resetToTerminalPrompt();
+            return;
+        }
+        const nextChar = FULL_TERMINAL_TEXT[currentIndex];
+        displayedText += nextChar;
+        currentIndex++;
+        updateDisplay();
+        updateCounter();
+        // Автоматическая прокрутка вниз
+        if (codeWindow) codeWindow.scrollTop = codeWindow.scrollHeight;
+    }
+    
+    // Добавление нескольких символов? нет, только по одному, но можно сделать быструю серию, но оставим посимвольно
+    function resetToTerminalPrompt() {
+        displayedText = TERMINAL_HEADER;
+        currentIndex = TERMINAL_HEADER.length;
+        updateDisplay();
+        updateCounter();
+        if (codeWindow) codeWindow.scrollTop = codeWindow.scrollHeight;
+        const container = document.querySelector('.hacker-container');
+        container.style.boxShadow = "0 0 45px #1fcc4b, inset 0 0 10px #0f0";
+        setTimeout(() => {
+            container.style.boxShadow = "0 0 30px rgba(31, 204, 75, 0.4), inset 0 0 8px rgba(0, 255, 0, 0.2)";
+        }, 280);
+    }
+    
+    // ========== ОБРАБОТКА ВВОДА С КЛАВИАТУРЫ (мобильной и физической) ==========
+    // Функция, которая вызывается при вводе любого символа (каждый введённый символ генерирует следующий байт кода)
+    function onUserInput(charOrEvent) {
+        addNextCharacter();
+        // Очищаем поле ввода после каждого ввода, чтобы можно было вводить много символов подряд
+        commandInput.value = '';
+        // Предотвращаем потерю фокуса
+        commandInput.focus();
+    }
+    
+    // Обработчик события input на поле: срабатывает при вводе каждого символа (мобильная клавиатура в реальном времени)
+    commandInput.addEventListener('input', function(e) {
+        const val = commandInput.value;
+        if (val.length > 0) {
+            // Чтобы не печатать по многу символов за раз (если вставка) — обработаем по одному символу
+            // Но вставка текста может добавить сразу несколько символов. Чтобы имитировать клавиатуру - добавляем ровно 1 символ за раз.
+            // Если пользователь вставил текст, то добавим только первый символ (или можно обработать каждый, но тогда сразу много).
+            // Реализуем: берем первый символ, остальное отбрасываем, чтобы не ускоряться слишком сильно.
+            const firstChar = val[0];
+            // Очищаем поле
+            commandInput.value = '';
+            addNextCharacter();
+        }
+    });
+    
+    // Также поддерживаем нажатие Enter и физические клавиши (для десктопа и Bluetooth-клавиатур)
+    commandInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addNextCharacter();
+            commandInput.value = '';
+        } else if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+            // Одиночные символы
+            e.preventDefault();
+            addNextCharacter();
+            commandInput.value = '';
+        } else {
+            // Игнорируем модификаторы
+            if (e.key === 'Backspace' || e.key === 'Delete') e.preventDefault();
+        }
+    });
+    
+    // Кнопка "ENTER" дублирует добавление символа
+    sendBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        addNextCharacter();
+        commandInput.value = '';
+        commandInput.focus();
+    });
+    
+    // При клике на область терминала (код) - переводим фокус на поле ввода, чтобы открыть клавиатуру на мобилках
+    function focusOnInput() {
+        commandInput.focus();
+        // Небольшая задержка для скролла, чтобы клавиатура не перекрыла полностью
+        setTimeout(() => {
+            if (codeWindow) {
+                codeWindow.scrollTop = codeWindow.scrollHeight;
+            }
+        }, 100);
+    }
+    
+    const codeWindowDiv = document.getElementById("codeWindow");
+    const codeDisplayPre = document.getElementById("codeDisplay");
+    codeWindowDiv.addEventListener('click', focusOnInput);
+    codeDisplayPre.addEventListener('click', focusOnInput);
+    // Также touchstart для мобильных (быстрая реакция)
+    codeWindowDiv.addEventListener('touchstart', focusOnInput, { passive: false });
+    codeDisplayPre.addEventListener('touchstart', focusOnInput, { passive: false });
+    
+    // Кнопка сброса работает как обычно, но после сброса фокусируем поле ввода
+    resetBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        resetToTerminalPrompt();
+        commandInput.value = '';
+        commandInput.focus();
+    });
+    
+    // Инициализация: выводим только промпт, без кода
+    displayedText = TERMINAL_HEADER;
+    currentIndex = TERMINAL_HEADER.length;
+    updateDisplay();
+    updateCounter();
+    // Фокусируем поле ввода, чтобы сразу можно было печатать (на десктопе удобно, на мобилке по тапу)
+    commandInput.focus();
+    
+    // Доп. стиль для мобильной панели: она всегда видна, клавиатура её не перекрывает полностью,
+    // и пользователь видит, что печатает, в то время как основной терминал скроллится.
+    console.log("💚 Green Ghost Terminal ready. Нажимай клавиши или используй поле ввода снизу 💚");
+</script>
+</body>
+</html>
